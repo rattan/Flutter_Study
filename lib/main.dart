@@ -1,105 +1,94 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MaterialApp(title: 'Flutter Tutorial', home: TutorialHome()));
+class Product {
+  const Product({required this.name});
+  final String name;
 }
 
-class TutorialHome extends StatelessWidget {
-  const TutorialHome({super.key});
+typedef CartCahngedCallback = void Function(Product product, bool inCart);
+
+class ShoppingListItem extends StatelessWidget {
+  ShoppingListItem(
+      {required this.product,
+      required this.inCart,
+      required this.onCartChanged})
+      : super(key: ObjectKey(product));
+
+  final Product product;
+  final bool inCart;
+  final CartCahngedCallback onCartChanged;
+
+  Color _getColor(BuildContext context) {
+    return inCart ? Colors.black54 : Theme.of(context).primaryColor;
+  }
+
+  TextStyle? _getTextStyle(BuildContext context) {
+    if (!inCart) return null;
+
+    return const TextStyle(
+        color: Colors.black54, decoration: TextDecoration.lineThrough);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+        onTap: () => onCartChanged(product, inCart),
+        leading: CircleAvatar(
+          backgroundColor: _getColor(context),
+          child: Text(product.name[0]),
+        ),
+        title: Text(product.name, style: _getTextStyle(context)));
+  }
+}
+
+class ShoppingList extends StatefulWidget {
+  const ShoppingList({super.key, required this.products});
+  final List<Product> products;
+
+  @override
+  State<StatefulWidget> createState() => _ShoppingListState();
+}
+
+class _ShoppingListState extends State<ShoppingList> {
+  final Set<Product> _shoppingCart = <Product>{};
+
+  void _handleCartChanged(Product product, bool inCart) {
+    setState(() {
+      if (!inCart) {
+        _shoppingCart.add(product);
+      } else {
+        _shoppingCart.remove(product);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: const IconButton(
-          icon: Icon(Icons.menu),
-          tooltip: 'Navigation menu',
-          onPressed: null,
-        ),
-        title: const Text('Example title'),
-        actions: const <Widget>[
-          Counter(),
-          MyButton(),
-          IconButton(
-            icon: Icon(Icons.search),
-            tooltip: 'Search',
-            onPressed: null,
-          ),
-        ],
-      ),
-      body: const Center(child: Text('Hello world!')),
-      floatingActionButton: const FloatingActionButton(
-        tooltip: 'Add',
-        onPressed: null,
-        child: Icon(Icons.add),
+      appBar: AppBar(title: const Text('Shopping List')),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        children: widget.products.map((Product product) {
+          return ShoppingListItem(
+            product: product,
+            inCart: _shoppingCart.contains(product),
+            onCartChanged: _handleCartChanged,
+          );
+        }).toList(),
       ),
     );
   }
 }
 
-class MyButton extends StatelessWidget {
-  const MyButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        print('MyButton was tapped!');
-      },
-      child: Container(
-        height: 36.0,
-        padding: const EdgeInsets.all(8.0),
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5.0),
-          color: Colors.lightGreen[500],
-        ),
-        child: const Center(child: Text('Engage')),
-      ),
-    );
-  }
-}
-
-class CounterDisplay extends StatelessWidget {
-  const CounterDisplay({super.key, required this.count});
-  final int count;
-  @override
-  Widget build(BuildContext context) {
-    return Text('Count: $count');
-  }
-}
-
-class CounterIncrementor extends StatelessWidget {
-  const CounterIncrementor({super.key, required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: onPressed, child: const Text('Increment'));
-  }
-}
-
-class Counter extends StatefulWidget {
-  const Counter({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _CounterState();
-}
-
-class _CounterState extends State<Counter> {
-  int _counter = 0;
-
-  void _increment() {
-    setState(() => ++_counter);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        CounterIncrementor(onPressed: _increment),
-        CounterDisplay(count: _counter)
+void main() {
+  runApp(const MaterialApp(
+    title: 'Shopping App',
+    home: ShoppingList(
+      products: <Product>[
+        Product(name: 'Eggs'),
+        Product(name: 'Flour'),
+        Product(name: 'Chocolate chips'),
       ],
-    );
-  }
+    ),
+  ));
 }
