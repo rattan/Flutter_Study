@@ -18,6 +18,7 @@ class TutorialHome extends StatelessWidget {
         ),
         title: const Text('Example title'),
         actions: const <Widget>[
+          Counter(),
           MyButton(),
           IconButton(
             icon: Icon(Icons.search),
@@ -55,6 +56,31 @@ class MyButton extends StatelessWidget {
         ),
         child: const Center(child: Text('Engage')),
       ),
+    );
+  }
+}
+
+class Counter extends StatefulWidget {
+  const Counter({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _CounterState();
+}
+
+class _CounterState extends State<Counter> {
+  int _counter = 0;
+
+  void _increment() {
+    setState(() => ++_counter);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        ElevatedButton(onPressed: _increment, child: const Text('Increment')),
+        Text('Count: $_counter')
+      ],
     );
   }
 }
